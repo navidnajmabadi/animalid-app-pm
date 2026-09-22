@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal ID App — Project Dashboard</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161922; --panel2:#1c2029; --border:#2a2f3a;
+    --text:#e8eaef; --muted:#9aa2b1; --accent:#5b8def; --accent2:#7c5bef;
+    --green:#3ec98b; --amber:#f0b429; --red:#ef5b5b;
+    --legal:#f0b429; --infra:#5b8def; --dev:#7c5bef; --mkt:#3ec98b;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  ::selection{background:var(--accent);color:#fff;}
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 30% 20%,#1a2130,#0f1115 60%);
+    padding:16px;
+  }
+  .login-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:16px;
+    padding:36px 32px;width:100%;max-width:360px;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .login-card h1{font-size:20px;margin:8px 0 2px;}
+  .login-card p.sub{color:var(--muted);font-size:13px;margin:0 0 24px;}
+  .login-card input{
+    width:100%;padding:11px 13px;margin-bottom:12px;border-radius:9px;
+    border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:14px;
+  }
+  .login-card input:focus{outline:2px solid var(--accent);border-color:transparent;}
+  .login-card button{
+    width:100%;padding:11px;border-radius:9px;border:none;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;
+  }
+  .login-card button:hover{filter:brightness(1.08);}
+  .login-err{color:var(--red);font-size:13px;height:16px;margin-top:8px;}
+  .login-note{color:var(--muted);font-size:11px;margin-top:22px;line-height:1.5;}
+  .paw{font-size:34px;}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none;min-height:100vh;}
+  header.topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 22px;background:rgba(15,17,21,.85);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .paw{font-size:22px;}
+  .brand h1{font-size:16px;margin:0;font-weight:700;}
+  .brand small{display:block;color:var(--muted);font-size:11px;font-weight:400;}
+  .topbar-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .sync-pill{
+    display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);
+    background:var(--panel2);border:1px solid var(--border);padding:5px 10px;border-radius:20px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);}
+  .dot.live{background:var(--green);box-shadow:0 0 8px var(--green);}
+  .whoami{display:flex;align-items:center;gap:8px;font-size:13px;}
+  .avatar{
+    width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:#0f1115;
+  }
+  .avatar.navid{background:var(--infra);color:#fff;}
+  .avatar.mehrdad{background:var(--legal);color:#0f1115;}
+  #logout{
+    background:none;border:1px solid var(--border);color:var(--muted);
+    padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;
+  }
+  #logout:hover{color:var(--text);border-color:var(--muted);}
+
+  main{padding:20px 22px 60px;max-width:1400px;margin:0 auto;}
+
+  /* ---------- OVERVIEW ---------- */
+  .overview{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px;
+  }
+  .stat-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;
+  }
+  .stat-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  .stat-card .value{font-size:26px;font-weight:700;margin-top:4px;}
+  .stat-card .bar{height:6px;border-radius:4px;background:var(--panel2);margin-top:10px;overflow:hidden;}
+  .stat-card .bar > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));}
+
+  /* ---------- FILTER BAR ---------- */
+  .filterbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+  .chip{
+    padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--panel);
+    color:var(--muted);font-size:12.5px;cursor:pointer;user-select:none;transition:.15s;
+  }
+  .chip:hover{border-color:var(--muted);}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .filterbar .spacer{flex:1;}
+  #search{
+    padding:7px 12px;border-radius:20px;border:1px solid var(--border);background:var(--panel);
+    color:var(--text);font-size:12.5px;min-width:160px;
+  }
+
+  /* ---------- PHASES (accordion) ---------- */
+  .phase{
+    background:var(--panel);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden;
+  }
+  .phase-head{
+    display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;gap:16px;flex-wrap:wrap;
+  }
+  .phase-head:hover{background:var(--panel2);}
+  .phase-title{display:flex;align-items:center;gap:12px;}
+  .phase-num{
+    width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;background:var(--panel2);border:1px solid var(--border);flex-shrink:0;
+  }
+  .phase.open .phase-num{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
+  .phase-title h2{font-size:15px;margin:0;}
+  .phase-title span.range{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;font-weight:400;}
+  .phase-progress{display:flex;align-items:center;gap:10px;}
+  .phase-progress .bar{width:110px;height:6px;border-radius:4px;background:var(--panel2);overflow:hidden;}
+  .phase-progress .bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));}
+  .phase-progress .pct{font-size:12px;color:var(--muted);width:34px;text-align:right;}
+  .chevron{transition:transform .2s;color:var(--muted);}
+  .phase.open .chevron{transform:rotate(180deg);}
+  .phase-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+  .phase.open .phase-body{max-height:6000px;}
+  .phase-inner{padding:4px 20px 20px;}
+
+  /* ---------- CATEGORY LANE ---------- */
+  .category-lane{margin-top:14px;}
+  .category-lane:first-child{margin-top:0;}
+  .cat-label{
+    display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;
+  }
+  .cat-dot{width:9px;height:9px;border-radius:50%;}
+  .cat-owner{
+    font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--panel2);
+    color:var(--text);text-transform:none;letter-spacing:0;
+  }
+
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media (max-width:760px){.board{grid-template-columns:1fr;}}
+  .col{
+    background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:60px;
+    transition:background .15s;
+  }
+  .col.dragover{background:#232838;border-color:var(--accent);}
+  .col-head{display:flex;justify-content:space-between;align-items:center;padding:2px 6px 10px;}
+  .col-head span.name{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .col-head span.count{
+    font-size:11px;color:var(--muted);background:var(--panel);border:1px solid var(--border);
+    padding:1px 7px;border-radius:10px;
+  }
+
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:8px;
+    cursor:grab;transition:transform .12s, box-shadow .12s, border-color .12s;
+  }
+  .card:hover{border-color:var(--muted);transform:translateY(-1px);}
+  .card.dragging{opacity:.4;}
+  .card .id{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.03em;}
+  .card .title{font-size:13px;font-weight:600;margin:3px 0 6px;line-height:1.35;}
+  .card .desc{font-size:11.5px;color:var(--muted);line-height:1.4;margin-bottom:8px;}
+  .card .meta{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .card .owner-badge{
+    display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);
+  }
+  .card .owner-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+  .card .owner-dot.navid{background:var(--infra);color:#fff;}
+  .card .owner-dot.mehrdad{background:var(--legal);color:#0f1115;}
+  .card .due{font-size:10.5px;color:var(--muted);}
+  .card .due.overdue{color:var(--red);font-weight:600;}
+  .card .notes{font-size:10.5px;color:var(--muted);margin-top:6px;font-style:italic;border-top:1px dashed var(--border);padding-top:6px;}
+  .empty-col{font-size:11px;color:var(--muted);text-align:center;padding:14px 4px;opacity:.6;}
+
+  footer{
+    text-align:center;color:var(--muted);font-size:11px;padding:24px 20px 40px;line-height:1.6;
+  }
+  footer a{color:var(--accent);}
+
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    padding:10px 18px;border-radius:20px;font-size:12.5px;opacity:0;pointer-events:none;
+    transition:.25s;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="paw">🐾</div>
+    <h1>Animal ID App — Project Board</h1>
+    <p class="sub">Private workspace for Navid &amp; Mehrdad</p>
+    <input id="user" type="text" placeholder="Username" autocomplete="username">
+    <input id="pass" type="password" placeholder="Password" autocomplete="current-password">
+    <button id="loginBtn">Sign in</button>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-note">
+      This is a lightweight access gate for two known collaborators, not real security —
+      the page code is visible to anyone with the link. Don't put anything sensitive on this board.
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="paw">🐾</span>
+      <div>
+        <h1>Animal ID App — Project Dashboard</h1>
+        <small>Launch sprint · Sep 22 – Oct 19, 2026</small>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-pill"><span class="dot" id="syncDot"></span><span id="syncLabel">Local seed data (Sheet not connected)</span></div>
+      <div class="whoami"><div class="avatar" id="meAvatar"></div><span id="meName"></span></div>
+      <button id="logout">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="overview" id="overview"></section>
+
+    <div class="filterbar">
+      <div class="chip active" data-owner="all">Everyone</div>
+      <div class="chip" data-owner="Navid">👤 Navid</div>
+      <div class="chip" data-owner="Mehrdad">👤 Mehrdad</div>
+      <div class="spacer"></div>
+      <input id="search" type="text" placeholder="Search tasks…">
+    </div>
+
+    <div id="phases"></div>
+
+    <footer>
+      Data source: Google Sheet "Animal ID App — PM Tasks DB" via Apps Script.
+      Board polls every 20s and writes status changes back on drag &amp; drop.<br>
+      To connect your own Sheet, set <code>APPS_SCRIPT_URL</code> at the top of <code>app.js</code> — see the repo README.
+    </footer>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
